@@ -1,4 +1,3 @@
-````md
 # Credit Risk Scoring Dashboard (Streamlit)
 
 An interactive **credit risk scoring** dashboard that predicts **Probability of Default (PD)** for loan applicants using a trained **Logistic Regression** pipeline.  
@@ -188,5 +187,3 @@ This dashboard is an **educational demonstration** of a credit risk workflow.
 
 * GitHub: `https://github.com/your-handle`
 * Email: `your.email@example.com`
-
-```
