@@ -1,4 +1,4 @@
-# Credit Risk Scoring Dashboard (Streamlit)
+# Credit Risk Scoring Dashboard 
 
 An interactive **credit risk scoring** dashboard that predicts **Probability of Default (PD)** for loan applicants using a trained **Logistic Regression** pipeline.  
 The app is designed like a lightweight internal tool used in lending teams: score an applicant, explore a portfolio, and review a simple “model card” for governance-style reporting.
@@ -41,7 +41,6 @@ What you can do with it:
   - **macOS:** Docker Desktop  
   - **Linux (Ubuntu):** Docker Engine or Docker Desktop
 
-**Quickstart**
 ```bash
 # 1) Build the image (run from the project root where the Dockerfile is)
 docker build -t credit-risk-dashboard .
@@ -60,7 +59,7 @@ Open the app in your browser:
 
 **Prerequisites**
 
-* Python **3.12.3**
+* Python **3.12**
 * `pip`
 
 **Steps**
@@ -183,7 +182,8 @@ This dashboard is an **educational demonstration** of a credit risk workflow.
 
 ## Author
 
-**Your Name**
+**Abhijith Senthilkumar**
+*MSc Data Science, University of Luxembourg*
 
-* GitHub: `https://github.com/your-handle`
-* Email: `your.email@example.com`
+* GitHub: `https://github.com/abhi-jith23`
+* Email: `abhijith.unilu@gmail.com`
