@@ -42,10 +42,14 @@ What you can do with it:
   - **Linux (Ubuntu):** Docker Engine or Docker Desktop
 
 ```bash
-# 1) Build the image (run from the project root where the Dockerfile is)
+# 1) Clone the repo and navigate into it
+git clone https://github.com/abhi-jith23/Credit-Risk-Dashboard.git
+cd Credit-Risk-Dashboard
+
+# 2) Build the image (run from the project root where the Dockerfile is)
 docker build -t credit-risk-dashboard .
 
-# 2) Run the container
+# 3) Run the container
 docker run --rm -p 8501:8501 credit-risk-dashboard
 ````
 
@@ -84,6 +88,7 @@ Open:
 
 ### 4.3 Reproducibility notes (what was done)
 
+* This project was developed to be fully reproducible.
 * Dependencies are **pinned** in `requirements.txt`.
 * The Docker image uses a fixed base image: `python:3.12.3`.
 * Training uses a fixed seed (`random_state=42`) for the train/test split and model settings.
