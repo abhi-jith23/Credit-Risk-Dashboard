@@ -69,14 +69,18 @@ Open the app in your browser:
 **Steps**
 
 ```bash
-# 1) Create and activate venv
+# 1) Clone the repo and navigate into it
+git clone https://github.com/abhi-jith23/Credit-Risk-Dashboard.git
+cd Credit-Risk-Dashboard
+
+# 2) Create and activate venv
 python3.12 -m venv .venv
 source .venv/bin/activate
 
-# 2) Install dependencies
+# 3) Install dependencies
 pip install -r requirements.txt
 
-# 3) Run the Streamlit app
+# 4) Run the Streamlit app
 streamlit run app/main_app.py
 ```
 
