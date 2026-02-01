@@ -1,0 +1,22 @@
+model:
+  name: "logreg"        # must be exactly: logreg OR lightgbm
+  version: "20260201_203456_27e581b"     # must be copied from Phase 6 output
+
+#If using lightgbm:
+#model:
+#  name: "lightgbm"  
+#  version: "20260201_203503_27e581b"
+
+policy:
+  version: "policy_v1"
+  t_low: 0.20
+  t_high: 0.35
+  review_capacity_per_day: 50
+
+review:
+  approval_rate: 0.50
+
+economics:
+  profit_good: 1000.0
+  loss_default: 5000.0
+  review_cost: 20.0
