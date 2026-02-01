@@ -1,0 +1,31 @@
+{
+  "retrieved_at_utc": "2026-02-01T17:45:49.147476+00:00",
+  "source": "uci:144",
+  "cache_csv": "data/cache/german_credit_raw.csv",
+  "sha256": "8da534e9ffb70fed1cd7bbe29960fa8c7f4cc1dd290abbd91f5d2c33fc3d602e",
+  "rows": 1000,
+  "cols": 21,
+  "feature_cols": [
+    "status_checking_account",
+    "duration_months",
+    "credit_history",
+    "purpose",
+    "credit_amount",
+    "savings_account_bonds",
+    "present_employment_since",
+    "installment_rate_pct_income",
+    "personal_status_and_sex",
+    "other_debtors_guarantors",
+    "present_residence_since",
+    "property",
+    "age_years",
+    "other_installment_plans",
+    "housing",
+    "existing_credits_count",
+    "job",
+    "people_liable_count",
+    "telephone",
+    "foreign_worker"
+  ],
+  "target_col": "credit_risk"
+}

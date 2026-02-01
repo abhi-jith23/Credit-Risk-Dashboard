@@ -1,0 +1,9 @@
+dataset:
+  uci_id: 144
+
+paths:
+  cache_csv: data/cache/german_credit_raw.csv
+  ingestion_metadata_json: artifacts/ingestion/ingestion_metadata.json
+
+run:
+  random_seed: 42
