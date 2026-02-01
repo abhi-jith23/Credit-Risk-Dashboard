@@ -5,6 +5,7 @@ paths:
   cache_csv: data/cache/german_credit_raw.csv
   ingestion_metadata_json: artifacts/ingestion/ingestion_metadata.json
   dq_report_json: artifacts/data_quality/data_quality_report.json
+  duckdb_path: warehouse/credit_risk.duckdb
 
 run:
   random_seed: 42
