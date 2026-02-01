@@ -8,5 +8,15 @@ paths:
   duckdb_path: warehouse/credit_risk.duckdb
   models_dir: artifacts/models
 
+  # SQL KPI layer
+  sql_ddl_dir: sql/ddl
+  sql_kpis_dir: sql/kpis
+  kpis_export_dir: artifacts/kpis
+
 run:
   random_seed: 42
+
+kpis:
+  model_name: "logreg"
+  model_version: "20260201_203456_27e581b"
+  policy_run_id: "20260201T215410.794106+0000_policy_v1_logreg_20260201_203456_27e581b"

@@ -1,6 +1,6 @@
 model:
-  name: "logreg"        # must be exactly: logreg OR lightgbm
-  version: "20260201_203456_27e581b"     # must be copied from Phase 6 output
+  name: "logreg"        
+  version: "20260201_203456_27e581b"     
 
 #If using lightgbm:
 #model:
