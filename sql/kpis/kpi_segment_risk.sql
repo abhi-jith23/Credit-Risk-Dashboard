@@ -1,5 +1,5 @@
 -- sql/kpis/kpi_segment_risk.sql
--- Segment risk using dim_applicant + fact_outcome (Phase 4) and ties it to a model version for tracking
+-- Segment risk using dim_applicant + fact_outcome and ties it to a model version for tracking
 
 DELETE FROM kpi_segment_risk
 WHERE model_name = '{{MODEL_NAME}}' AND model_version = '{{MODEL_VERSION}}';

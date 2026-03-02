@@ -1,5 +1,5 @@
 -- sql/kpis/kpi_funnel.sql
--- Uses policy_run_decisions (Phase 7)
+-- Uses policy_run_decisions
 
 DELETE FROM kpi_funnel WHERE policy_run_id = '{{POLICY_RUN_ID}}';
 

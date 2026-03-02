@@ -1,5 +1,5 @@
 -- sql/kpis/kpi_calibration_decile.sql
--- Calibration deciles for a specific model_name/model_version (Phase 6)
+-- Calibration deciles for a specific model_name/model_version 
 
 DELETE FROM kpi_calibration_decile
 WHERE model_name = '{{MODEL_NAME}}' AND model_version = '{{MODEL_VERSION}}';

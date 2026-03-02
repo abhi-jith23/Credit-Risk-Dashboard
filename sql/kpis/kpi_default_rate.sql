@@ -1,5 +1,5 @@
 -- sql/kpis/kpi_default_rate.sql
--- Default rate by decision bucket (Phase 7)
+-- Default rate by decision bucket 
 
 DELETE FROM kpi_default_rate_by_bucket WHERE policy_run_id = '{{POLICY_RUN_ID}}';
 
