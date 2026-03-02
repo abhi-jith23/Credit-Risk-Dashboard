@@ -1,6 +1,7 @@
 model:
   name: "logreg"        
-  version: "20260201_203456_27e581b"     
+  #version: "20260201_203456_27e581b"     
+  version: "20260302_132221_48bfd53"
 
 #If using lightgbm:
 #model:
