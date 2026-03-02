@@ -1,198 +1,260 @@
-# Credit Risk Scoring Dashboard 
+# Credit Risk Dashboard (v2)
 
-An interactive **credit risk scoring** dashboard that predicts **Probability of Default (PD)** for loan applicants using a trained **Logistic Regression** pipeline.  
-The app is designed like a lightweight internal tool used in lending teams: score an applicant, explore a portfolio, and review a simple “model card” for governance-style reporting.
-
----
+This repository contains a reproducible credit-risk decisioning workflow built around the German Credit (UCI Statlog) dataset. It combines a lightweight Streamlit dashboard with an end-to-end pipeline that ingests data, validates it, loads it into a DuckDB warehouse, trains two models (Logistic Regression and LightGBM) with versioned artifacts, simulates underwriting policies, and produces BI-ready KPIs defined in version-controlled SQL.
 
 ## Project Overview
 
-This project trains a baseline credit risk model on the **Statlog German Credit** dataset and serves the model through a **Streamlit** web application.
-
-What you can do with it:
-- **Underwriting view:** enter applicant details → get PD + a decision suggestion (Approve / Manual Review / Decline).
-- **Portfolio view:** filter the dataset and inspect PD distributions and risk segmentation.
-- **Model governance view:** inspect ROC/PR curves, calibration, confusion matrices at different thresholds, and global coefficient-based feature importance.
-
----
+The project is organized as a BI + ML pipeline rather than only a classifier. It produces:
+- Model scores (Probability of Default) for applicants
+- Governance-style model diagnostics (ROC, PR, calibration, threshold analysis)
+- A persistent analytics warehouse (DuckDB) that stores applicants, outcomes, scores, policy decisions, and KPI tables
+- A policy simulator that turns scores into business actions (Approve / Review / Decline) under capacity and economics assumptions
+- A SQL KPI layer to compute portfolio and decision KPIs in a reproducible and auditable way
+- A Streamlit app that reads from versioned model artifacts and DuckDB
 
 ## Key Features
 
-- **Applicant scoring** with configurable decision thresholds (Approve / Manual Review / Decline)
-- **PD gauge** + **what-if simulation** (vary one feature and see PD change)
-- **Portfolio explorer** with filtering and risk segmentation charts
-- **Model card** page with:
-  - ROC curve (from exported metrics)
-  - Confusion matrix at an interactive threshold
-  - Calibration curve
-  - Precision–Recall curve
-  - Global coefficient-based “feature importance”
-- **Reproducible artifacts** tracked in `artifacts/` (model, metrics, predictions, coefficients)
+Modeling and scoring
+- Two models trained on the same validated dataset
+  - Logistic Regression (interpretable baseline)
+  - LightGBM (nonlinear challenger)
+- Versioned model artifacts stored under `artifacts/models/<model>/<model_version>/`
+- Model scores written into DuckDB `fact_score` with `model_name` and `model_version`
 
----
+Data integrity and reproducibility
+- Deterministic ingestion cache and lineage metadata (hash + timestamp)
+- Data quality contract with a fail-closed gate (validation report is produced every run)
+- Pinned dependencies in `requirements.txt`
+- Persistent DuckDB warehouse used as the single source of truth for analytics
 
-## Installation
+Decisioning and business impact
+- Policy simulator converts PD into underwriting actions:
+  - PD < t_low → Approve
+  - t_low ≤ PD < t_high → Review
+  - PD ≥ t_high → Decline
+- Review capacity constraint and overflow tracking
+- Economics layer (profit/loss assumptions and review cost)
+- Results written into DuckDB policy tables for BI and dashboard use
 
-### 4.1 Docker Method (recommended)
+BI and metrics
+- KPI definitions written as version-controlled SQL in `sql/kpis/`
+- KPI tables materialized into DuckDB and exported as CSV snapshots per run
+- Metrics cover funnel rates, default rates by decision, calibration deciles, and segment risk
 
-**What you need installed:**
-- **Docker**  
-  - **Windows:** Docker Desktop with **WSL 2 enabled**  
-  - **macOS:** Docker Desktop  
-  - **Linux (Ubuntu):** Docker Engine or Docker Desktop
+## Reproducibility
 
-```bash
-# 1) Clone the repo and navigate into it
-git clone https://github.com/abhi-jith23/Credit-Risk-Dashboard.git
-cd Credit-Risk-Dashboard
-
-# 2) Build the image (run from the project root where the Dockerfile is)
-docker build -t credit-risk-dashboard .
-
-# 3) Run the container
-docker run --rm -p 8501:8501 credit-risk-dashboard
-````
-
-Open the app in your browser:
-
-* `http://localhost:8501`
-
----
-
-### 4.2 Python venv Method (local run)
-
-**Prerequisites**
-
-* Python **3.12**
-* `pip`
-
-**Steps**
-
-```bash
-# 1) Clone the repo and navigate into it
-git clone https://github.com/abhi-jith23/Credit-Risk-Dashboard.git
-cd Credit-Risk-Dashboard
-
-# 2) Create and activate venv
-python3.12 -m venv .venv
-source .venv/bin/activate
-
-# 3) Install dependencies
-pip install -r requirements.txt
-
-# 4) Run the Streamlit app
-streamlit run app/main_app.py
-```
-
-Open:
-
-* `http://localhost:8501`
-
----
-
-### 4.3 Reproducibility notes (what was done)
-
-* This project was developed to be fully reproducible.
-* Dependencies are **pinned** in `requirements.txt`.
-* The Docker image uses a fixed base image: `python:3.12.3`.
-* Training uses a fixed seed (`random_state=42`) for the train/test split and model settings.
-* Model outputs are exported into `artifacts/` and the Streamlit app reads these files directly.
-
----
+The project is artifact-driven and warehouse-driven:
+- Inputs are cached and fingerprinted:
+  - `data/cache/german_credit_raw.csv`
+  - `artifacts/ingestion/ingestion_metadata.json` (includes SHA256 and retrieval timestamp)
+- Data quality is enforced before downstream steps:
+  - `artifacts/data_quality/data_quality_report.json`
+- Models are never overwritten; each training produces a new version folder:
+  - `artifacts/models/logreg/<model_version>/...`
+  - `artifacts/models/lightgbm/<model_version>/...`
+- KPIs are reproducible and auditable via SQL files committed to git:
+  - `sql/kpis/*.sql`
+  - KPI exports are saved per run under `artifacts/kpis/<kpi_run_id>/`
 
 ## Project Structure
 
 ```text
 .
 ├── app
-│   ├── main_app.py                 # Streamlit entrypoint
-│   ├── ui_text.py                  # UI text + feature labels + category mappings
+│   ├── main_app.py
+│   ├── ui_text.py
 │   └── pages
-│       ├── applicant_scoring.py    # Underwriting / applicant PD scoring
-│       ├── portfolio_explorer.py   # Portfolio filtering + segmentation
-│       └── model_card.py           # Governance-style diagnostics
+│       ├── applicant_scoring.py
+│       ├── portfolio_explorer.py
+│       ├── model_card.py
+│       ├── data_quality.py
+│       ├── bi_metrics.py
+│       └── policy_impact.py
 ├── artifacts
-│   ├── credit_risk_pipeline.pkl    # Trained sklearn pipeline (preprocess + model)
-│   ├── metrics.json                # ROC-AUC, PR, Brier, ROC curve arrays, etc.
-│   ├── test_predictions.csv        # y_true + pd_default (for interactive plots)
-│   └── feature_importance.csv      # Logistic regression coefficients
+│   ├── ingestion
+│   │   └── ingestion_metadata.json
+│   ├── data_quality
+│   │   └── data_quality_report.json
+│   ├── models
+│   │   ├── logreg
+│   │   │   └── <model_version>/
+│   │   └── lightgbm
+│   │       └── <model_version>/
+│   └── kpis
+│       └── <kpi_run_id>/
+├── config
+│   ├── pipeline.yaml
+│   └── policy.yaml
 ├── data
-│   └── german.data                 # Dataset file (used by src/data.py)
-├── notebooks
-│   └── train_model.ipynb           # Training notebook (calls src.train)
+│   ├── cache
+│   │   └── german_credit_raw.csv
+│   └── german.data
+├── sql
+│   ├── ddl
+│   │   └── 001_create_tables.sql
+│   └── kpis
+│       ├── kpi_funnel.sql
+│       ├── kpi_default_rate.sql
+│       ├── kpi_calibration_decile.sql
+│       └── kpi_segment_risk.sql
 ├── src
-│   ├── data.py                     # Load/download dataset + schema
-│   ├── features.py                 # Coefficient table / feature names
-│   ├── metrics.py                  # Metric computation + JSON export
-│   └── train.py                    # Training pipeline + artifact export
-├── Dockerfile
+│   ├── ingest.py
+│   ├── validate.py
+│   ├── warehouse.py
+│   ├── train.py
+│   ├── policy.py
+│   ├── kpis.py
+│   ├── pipeline.py
+│   └── models
+│       ├── logreg.py
+│       └── lightgbm.py
+├── warehouse
+│   └── credit_risk.duckdb
 ├── requirements.txt
 └── README.md
 ```
 
----
-
 ## Data Flow
 
-### 1) Data Preprocessing
+This section describes what was implemented in v2 and why each step exists. It also explains how to replicate the same pipeline for a different dataset.
 
-* `src/data.py` loads `data/german.data` and assigns the official feature schema.
-* Numeric features are cast to numeric.
-* Categorical features are kept as strings for one-hot encoding.
-* Target is encoded as `default = 1` (bad credit / default) and `default = 0` (good credit).
+Ingest
+- What happens:
+  - The dataset is retrieved programmatically and saved into `data/cache/german_credit_raw.csv`.
+  - A lineage metadata file is written to `artifacts/ingestion/ingestion_metadata.json` (timestamp, source ID, file hash, row/col counts).
+- Why it is needed:
+  - It makes the input data reproducible, traceable, and easy to refresh.
+- How to replicate with your own dataset:
+  - Replace the ingestion step to write your own raw file to `data/cache/<your_data>.csv`.
+  - Update the ingestion metadata to include your file hash and retrieval timestamp.
+  - Keep the downstream steps unchanged as long as your schema matches the validation and warehouse expectations.
 
-### 2) Model Training Pipeline
+Validate (data contract)
+- What happens:
+  - A strict data contract validates schema, types, allowed categories, and numeric ranges.
+  - A machine-readable report is written to `artifacts/data_quality/data_quality_report.json`.
+  - Downstream steps are blocked if validation fails.
+- Why it is needed:
+  - It prevents bad or unexpected data from entering the warehouse, models, and KPI computations.
+- How to replicate with your own dataset:
+  - Define your dataset schema (column names and types).
+  - Define allowed categories for categorical fields and range checks for numeric fields.
+  - Ensure the validation report is generated for every run and that failures stop the pipeline.
 
-Implemented in `src/train.py`:
+Warehouse (DuckDB)
+- What happens:
+  - A persistent DuckDB database is created at `warehouse/credit_risk.duckdb`.
+  - Clean tables are created and loaded:
+    - `dim_applicant` (features)
+    - `fact_outcome` (target/outcome)
+    - `fact_score` (model scores, model versions)
+    - `meta_ingestion` (ingestion lineage)
+- Why it is needed:
+  - The warehouse becomes the single source of truth for BI queries, policy simulation, and dashboard metrics.
+  - SQL KPIs and monitoring can be computed consistently on stored tables.
+- How to replicate with your own dataset:
+  - Create a `dim_*` table for stable features and a `fact_*` table for outcomes.
+  - Ensure you have a stable key (`application_id`) so policy decisions and scores can be joined.
 
-* Split data into train/test with stratification.
-* Build a preprocessing pipeline:
+Train (two-model system)
+- What happens:
+  - Both Logistic Regression and LightGBM are trained from warehouse tables.
+  - Each run generates a deterministic `model_version` and stores a self-contained bundle:
+    - `model.joblib`, `metrics.json`, `test_predictions.csv`, `feature_importance.csv`
+  - Scores for the full dataset are inserted into DuckDB `fact_score`.
+- Why it is needed:
+  - Versioned artifacts support traceability, comparison between models, and reproducible inference.
+  - A champion–challenger setup creates a realistic BI + ML workflow.
+- How to replicate with your own dataset:
+  - Ensure the warehouse outputs the same types of training inputs (features + label).
+  - Keep the artifact layout and write scores back into the warehouse with model identifiers.
 
-  * Numeric: median imputation → standardization
-  * Categorical: mode imputation → one-hot encoding
-* Train **Logistic Regression** with a small **GridSearchCV** over regularization settings.
-* Export artifacts to `artifacts/`:
+Policy (impact simulator)
+- What happens:
+  - A policy run reads PD scores from `fact_score` for a chosen model/version.
+  - It applies thresholds and review capacity and computes expected value using economics parameters.
+  - It writes:
+    - `policy_run_summary`
+    - `policy_run_decisions`
+  - A `policy_run_id` uniquely identifies each run.
+- Why it is needed:
+  - It converts “a score” into “a business decision” and allows operational constraints to be modeled.
+- How to replicate with your own dataset:
+  - Keep the same policy logic if you have PD scores and an outcome label.
+  - Change the economics assumptions to match your business case.
 
-  * trained pipeline (`credit_risk_pipeline.pkl`)
-  * evaluation metrics (`metrics.json`)
-  * test-set probabilities (`test_predictions.csv`)
-  * coefficient table (`feature_importance.csv`)
+KPIs (SQL KPI layer)
+- What happens:
+  - KPI definitions are stored as SQL files in `sql/kpis/`.
+  - Running the KPI step materializes tables in DuckDB and exports CSV snapshots:
+    - `kpi_funnel`
+    - `kpi_default_rate_by_bucket`
+    - `kpi_calibration_decile`
+    - `kpi_segment_risk`
+  - Exports are written to `artifacts/kpis/<kpi_run_id>/`.
+- Why it is needed:
+  - SQL KPIs are auditable, version-controlled, and repeatable.
+  - They directly support BI-style reporting and segmentation.
+- How to replicate with your own dataset:
+  - Define KPIs relevant to your business in SQL files.
+  - Ensure the KPI queries reference your warehouse tables consistently.
 
-To retrain and overwrite artifacts:
+## BI and SQL Capabilities
 
+DuckDB is used as the analytics core:
+- Persistent tables for applicants, outcomes, model scores, and policy runs
+- KPI tables computed using version-controlled SQL
+- Easy segmentation and monitoring via SQL joins and aggregates
+
+KPI definitions are maintained as code:
+- DDL: `sql/ddl/001_create_tables.sql`
+- KPIs: `sql/kpis/*.sql`
+- KPI outputs:
+  - materialized tables in DuckDB
+  - exported CSV snapshots under `artifacts/kpis/<kpi_run_id>/`
+
+## Setup and Usage
+
+Install dependencies
 ```bash
-python -m src.train
+pip install -r requirements.txt
 ```
 
-### 3) Prediction / Dashboard Pipeline
+Run the Streamlit dashboard
+```bash
+streamlit run app/main_app.py
+```
 
-Implemented in `app/main_app.py` + pages:
+Run the pipeline step-by-step
+```bash
+python -m src.ingest
+python -m src.validate
+python -m src.warehouse
+python -m src.train
+python -m src.policy
+python -m src.kpis
+```
 
-* Load the trained pipeline from `artifacts/credit_risk_pipeline.pkl`.
-* Load dataset (for input ranges, defaults, and portfolio exploration).
-* Pages:
+Run the end-to-end pipeline
+```bash
+python -m src.pipeline
+```
 
-  * Applicant Scoring → PD + decision + what-if simulation
-  * Portfolio Explorer → batch PD scoring + segmentation plots
-  * Model Card → diagnostic plots and threshold analysis
+## Key Improvements in the Next Update
 
----
+Integrated dataset ingestion and refresh without manual configuration changes
+- Add an ingestion mode that accepts user-provided files (CSV or similar) as the source.
+- Automatically rebuild the warehouse and retrain models whenever a new file is ingested.
+- Automatically select the latest model version and latest policy run for KPI computation.
+- Automatically update KPI tables and exports after retraining.
 
 ## Disclaimer
 
-This dashboard is an **educational demonstration** of a credit risk workflow.
-
-* It is **not** a production-grade credit scoring system.
-* Outputs are based on a historical academic dataset and a baseline model.
-* Do not use this tool to make real lending decisions, credit approvals, or compliance judgments.
-* Real-world credit risk systems require stronger validation, monitoring, governance, and fairness checks.
-
----
+This project is an educational demonstration of a credit-risk workflow. It is not a production credit-scoring system and must not be used for real lending decisions, credit approvals, or compliance judgments. Real-world systems require additional validation, governance, monitoring, and fairness assessments.
 
 ## Author
 
-**Abhijith Senthilkumar**
-*MSc Data Science, University of Luxembourg*
-
-* GitHub: `https://github.com/abhi-jith23`
-* Email: `abhijith.unilu@gmail.com`
+Abhijith Senthilkumar  
+MSc Data Science, University of Luxembourg  
+GitHub: https://github.com/abhi-jith23  
+Email: abhijith.unilu@gmail.com
