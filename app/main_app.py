@@ -4,7 +4,6 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-# IMPORTANT: add repo root to sys.path BEFORE importing "app.*"
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -39,7 +38,6 @@ PIPELINE_YAML = CONFIG_DIR / "pipeline.yaml"
 POLICY_YAML = CONFIG_DIR / "policy.yaml"
 
 
-# Streamlit recommends calling set_page_config first.
 st.set_page_config(
     page_title=APP_TITLE,
     page_icon=APP_ICON,
@@ -77,7 +75,6 @@ def list_model_versions(model_name: str) -> list[str]:
     base = ARTIFACTS_DIR / "models" / model_name
     if not base.exists():
         return []
-    # Versions are timestamped; sorting descending gives newest first.
     versions = sorted([p.name for p in base.iterdir() if p.is_dir()], reverse=True)
     return versions
 
@@ -140,7 +137,7 @@ def load_dataset_from_duckdb(duckdb_path_rel: str | Path) -> dict[str, Any]:
     if df.empty:
         raise RuntimeError("DuckDB returned 0 rows from dim_applicant/fact_outcome")
 
-    # Create UI-friendly column names (matches your v1 Streamlit pages)
+    # UI-friendly column names
     rename = {
         "status_checking_account": "checking_status",
         "savings_account_bonds": "savings_status",
@@ -219,7 +216,7 @@ def main() -> None:
         st.sidebar.error("No models found in artifacts/models/. Run: python -m src.train")
         st.stop()
 
-    # Defaults from config/pipeline.yaml kpis section (if present)
+    # Defaults from config/pipeline.yaml kpis section 
     default_model_name = str(cfg.get("kpis", {}).get("model_name", model_names[0]))
     if default_model_name not in model_names:
         default_model_name = model_names[0]

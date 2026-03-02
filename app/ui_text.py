@@ -45,7 +45,7 @@ FEATURE_HELP = {
 }
 
 # --- Official UCI code->meaning mapping (German Credit / Statlog) ---
-# Source: UCI Statlog German Credit dataset documentation.  :contentReference[oaicite:4]{index=4}
+# Source: UCI Statlog German Credit dataset documentation
 CATEGORY_VALUE_LABELS = {
     "checking_status": {
         "A11": "< 0 DM",
