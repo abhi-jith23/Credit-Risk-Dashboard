@@ -13,7 +13,7 @@ from pandera import Column, Check, DataFrameSchema
 import yaml
 
 
-# UCI categorical code sets are listed in "Additional Variable Information". :contentReference[oaicite:11]{index=11}
+# UCI categorical code sets are listed in "Additional Variable Information"
 ALLOWED = {
     "status_checking_account": ["A11", "A12", "A13", "A14"],
     "credit_history": ["A30", "A31", "A32", "A33", "A34"],
@@ -52,7 +52,7 @@ FEATURE_COLS = [
     "telephone",
     "foreign_worker",
 ]
-TARGET_COL = "credit_risk"  # 1=Good, 2=Bad :contentReference[oaicite:12]{index=12}
+TARGET_COL = "credit_risk"  # 1=Good, 2=Bad 
 
 
 @dataclass(frozen=True)
@@ -81,8 +81,8 @@ def _read_pipeline_config(path: Path) -> PipelineConfig:
 
 
 def _build_schema() -> DataFrameSchema:
-    # Use lazy=True during validate to collect all errors. :contentReference[oaicite:13]{index=13}
-    # Use coerce=True on columns to coerce types before checks. :contentReference[oaicite:14]{index=14}
+    # Use lazy=True during validate to collect all errors
+    # Use coerce=True on columns to coerce types before checks
     schema = DataFrameSchema(
         {
             # Categorical columns
@@ -100,7 +100,7 @@ def _build_schema() -> DataFrameSchema:
             "telephone": Column(str, Check.isin(ALLOWED["telephone"]), nullable=False, coerce=True),
             "foreign_worker": Column(str, Check.isin(ALLOWED["foreign_worker"]), nullable=False, coerce=True),
 
-            # Numeric columns (UCI: integers; and no missing values) :contentReference[oaicite:15]{index=15}
+            # Numeric columns (UCI: integers; and no missing values) 
             "duration_months": Column(int, Check.gt(0), nullable=False, coerce=True),
             "credit_amount": Column(int, Check.gt(0), nullable=False, coerce=True),
             "installment_rate_pct_income": Column(int, Check.isin([1, 2, 3, 4]), nullable=False, coerce=True),
@@ -122,7 +122,7 @@ def _ensure_parent_dir(path: Path) -> None:
 
 
 def _format_failure_cases(exc: pa.errors.SchemaErrors) -> List[Dict[str, Any]]:
-    # Pandera SchemaErrors contains failure_cases when lazy=True. :contentReference[oaicite:16]{index=16}
+    # Pandera SchemaErrors contains failure_cases when lazy=True
     fc = exc.failure_cases.copy()
     # Keep only common fields if present
     keep = [c for c in ["schema_context", "column", "check", "failure_case", "index"] if c in fc.columns]
@@ -154,7 +154,7 @@ def main() -> None:
     schema = _build_schema()
 
     try:
-        schema.validate(df, lazy=True)  # lazy validation collects all issues :contentReference[oaicite:17]{index=17}
+        schema.validate(df, lazy=True)  # lazy validation collects all issues
         report["passed"] = True
     except pa.errors.SchemaErrors as exc:
         report["passed"] = False
@@ -164,9 +164,9 @@ def main() -> None:
         json.dump(report, f, indent=2)
 
     if report["passed"]:
-        print("✅ Phase 3 complete: Data Quality PASSED")
+        print("Data Quality PASSED")
     else:
-        print("❌ Phase 3 complete: Data Quality FAILED")
+        print("Data Quality FAILED")
         print(f"See report: {cfg.dq_report_json}")
 
 

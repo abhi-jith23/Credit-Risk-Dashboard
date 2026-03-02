@@ -33,8 +33,6 @@ def build_lgbm_pipeline(
     categorical_pipe = Pipeline(
         steps=[
             ("imputer", SimpleImputer(strategy="most_frequent")),
-            # Optional but often helps small datasets by reducing sparse explosion:
-            # merge rare categories into an "infrequent" bucket
             ("onehot", OneHotEncoder(
                 handle_unknown="infrequent_if_exist",
                 min_frequency=10,

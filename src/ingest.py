@@ -15,7 +15,7 @@ from ucimlrepo import fetch_ucirepo
 
 
 # Canonical column names based on UCI variable information for german.data (20 attributes + target)
-# UCI provides the variable list and categorical code sets. :contentReference[oaicite:4]{index=4}
+# UCI provides the variable list and categorical code sets
 FEATURE_COLUMNS = [
     "status_checking_account",                 # Attribute 1 (A11..A14)
     "duration_months",                         # Attribute 2
@@ -38,7 +38,7 @@ FEATURE_COLUMNS = [
     "telephone",                               # Attribute 19 (A191..A192)
     "foreign_worker",                          # Attribute 20 (A201..A202)
 ]
-TARGET_COLUMN = "credit_risk"                  # 1 = Good, 2 = Bad :contentReference[oaicite:5]{index=5}
+TARGET_COLUMN = "credit_risk"                  # 1 = Good, 2 = Bad
 
 
 @dataclass(frozen=True)
@@ -59,7 +59,7 @@ def _read_pipeline_config(path: Path) -> PipelineConfig:
     with path.open("r", encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
 
-    # Strict required keys (no assumptions)
+    # Strict required keys
     try:
         uci_id = int(cfg["dataset"]["uci_id"])
         cache_csv = Path(cfg["paths"]["cache_csv"])
@@ -93,7 +93,7 @@ def _ensure_parent_dir(path: Path) -> None:
 
 
 def _fetch_uci_144_as_dataframe(uci_id: int) -> Tuple[pd.DataFrame, pd.Series]:
-    ds = fetch_ucirepo(id=uci_id)  # UCI shows this exact usage for id=144. :contentReference[oaicite:6]{index=6}
+    ds = fetch_ucirepo(id=uci_id)  # UCI shows this exact usage for id=144
     X = ds.data.features.copy()
     y = ds.data.targets.copy()
 
@@ -114,7 +114,7 @@ def main() -> None:
     _ensure_parent_dir(cfg.cache_csv)
     _ensure_parent_dir(cfg.ingestion_metadata_json)
 
-    # Fetch from UCI using ucimlrepo, per UCI documentation. :contentReference[oaicite:7]{index=7}
+    # Fetch from UCI using ucimlrepo, per UCI documentation
     X, y = _fetch_uci_144_as_dataframe(cfg.uci_id)
 
     # Enforce column count and rename to canonical names for stable downstream validation/warehouse.
@@ -145,7 +145,6 @@ def main() -> None:
     with cfg.ingestion_metadata_json.open("w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
 
-    print("✅ Phase 2 complete")
     print(f"  - Wrote: {cfg.cache_csv}")
     print(f"  - Wrote: {cfg.ingestion_metadata_json}")
     print(f"  - sha256: {sha256}")

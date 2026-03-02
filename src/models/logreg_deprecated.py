@@ -7,7 +7,7 @@ from typing import Any, Dict
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import GridSearchCV, StratifiedKFold
+from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
@@ -46,13 +46,14 @@ def build_logreg_pipeline(
         verbose_feature_names_out=True,
     )
 
-    # Keep liblinear (fast, stable). We'll tune l1_ratio and class_weight in grid.
+    # l1_ratio=0 => L2, l1_ratio=1 => L1 (no elastic-net in-between)
     model = LogisticRegression(
-        max_iter=4000,
+        #max_iter=4000,
+        max_iter=2000,
         solver="liblinear",
+        class_weight="balanced",
         random_state=random_state,
-        # do NOT set penalty to avoid deprecation warnings in your sklearn
-        # do NOT set class_weight here; we tune it in the grid
+        l1_ratio=0.0,  
     )
 
     return Pipeline(steps=[("preprocess", preprocess), ("model", model)])
@@ -67,30 +68,24 @@ def train_logreg(
 ) -> LogRegResult:
     pipe = build_logreg_pipeline(numeric_cols, categorical_cols, random_state=random_state)
 
-    # Larger but still manageable grid
-    C_grid = [0.01, 0.03, 0.1, 0.3, 1.0, 3.0, 10.0, 30.0]
+    #C_grid = [0.01, 0.03, 0.1, 0.3, 1.0, 3.0, 10.0, 30.0]
+    C_grid = [0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0]
 
     param_grid = {
         "model__C": C_grid,
-        # In your sklearn, l1_ratio is the supported replacement for penalty choice.
         "model__l1_ratio": [0.0, 1.0],
-        # Let the search decide whether balancing helps AUC.
-        "model__class_weight": [None, "balanced"],
     }
-
-    # CRITICAL: make CV independent of row order
-    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=random_state)
 
     search = GridSearchCV(
         estimator=pipe,
         param_grid=param_grid,
         scoring="roc_auc",
-        cv=cv,
+        cv=5,
         n_jobs=-1,
         refit=True,
     )
 
     search.fit(X_train, y_train)
     best_pipe: Pipeline = search.best_estimator_
-
     return LogRegResult(pipeline=best_pipe, best_params=search.best_params_)
+
